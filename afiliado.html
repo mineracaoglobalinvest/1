@@ -21,7 +21,7 @@ h2{text-align:center;margin-bottom:20px;}
 .valor{font-size:22px;font-weight:bold;}
 .input-group{display:flex;}
 .input-group input{flex:1;padding:10px;border:none;border-radius:8px 0 0 8px;}
-.input-group button{padding:10px 15px;border:none;border-radius:0 8px 8px 0;background:#22c55e;color:#fff;}
+.input-group button{padding:10px 15px;border:none;border-radius:0 8px 8px 0;background:#22c55e;color:#fff;cursor:pointer;}
 small{display:block;color:#065f46;}
 </style>
 </head>
@@ -74,6 +74,7 @@ small{display:block;color:#065f46;}
 </div>
 
 <script>
+/* Firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
   authDomain: "mineracao-global-invest.firebaseapp.com",
@@ -88,6 +89,7 @@ if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
+/* Auth */
 auth.onAuthStateChanged(async user=>{
   if(!user){
     location.href="index.html";
@@ -96,21 +98,25 @@ auth.onAuthStateChanged(async user=>{
 
   const uid = user.uid;
 
-  // Link convite
+  /* Link de convite (AJUSTADO PARA /1/) */
   const uSnap = await db.ref("users/"+uid).get();
-  document.getElementById("affiliateLink").value =
-    `${location.origin}/registrar.html?invite=${uSnap.val().inviteCode}`;
+  const inviteCode = uSnap.val()?.inviteCode || "";
 
-  // -------- CONVIDADOS POR NÍVEL --------
+  document.getElementById("affiliateLink").value =
+    `${location.origin}/1/registrar.html?invite=${inviteCode}`;
+
+  /* -------- CONVIDADOS POR NÍVEL -------- */
   db.ref("users").on("value", snap=>{
     const users = snap.val() || {};
     let n1=0, n2=0, n3=0;
 
     for(const id in users){
       const u = users[id];
+
       if(u.convidadoPor === uid) n1++;
 
-      if(u.convidadoPor && users[u.convidadoPor]?.convidadoPor === uid) n2++;
+      if(u.convidadoPor &&
+         users[u.convidadoPor]?.convidadoPor === uid) n2++;
 
       if(u.convidadoPor &&
          users[u.convidadoPor] &&
@@ -122,7 +128,7 @@ auth.onAuthStateChanged(async user=>{
     document.getElementById("n3_convidados").innerText = `👥 ${n3} convidados`;
   });
 
-  // -------- COMISSÕES REAIS --------
+  /* -------- COMISSÕES -------- */
   db.ref("commissions")
     .orderByChild("toUid")
     .equalTo(uid)
@@ -137,18 +143,21 @@ auth.onAuthStateChanged(async user=>{
         if(v.nivel===3) d3++;
       });
 
-      document.getElementById("saldoAfiliado").innerText = total.toFixed(2)+" KZ";
+      document.getElementById("saldoAfiliado").innerText =
+        total.toFixed(2) + " KZ";
+
       document.getElementById("n1_depositos").innerText = `💰 ${d1} depósitos`;
       document.getElementById("n2_depositos").innerText = `💰 ${d2} depósitos`;
       document.getElementById("n3_depositos").innerText = `💰 ${d3} depósitos`;
     });
 });
 
+/* Copiar link (moderno) */
 function copyLink(){
-  const i = document.getElementById("affiliateLink");
-  i.select();
-  document.execCommand("copy");
-  alert("Link copiado!");
+  const link = document.getElementById("affiliateLink").value;
+  navigator.clipboard.writeText(link)
+    .then(()=> alert("Link copiado!"))
+    .catch(()=> alert("Não foi possível copiar o link"));
 }
 </script>
 
