@@ -97,11 +97,18 @@ auth.onAuthStateChanged(async user=>{
   }
 
   const uid = user.uid;
+  const userRef = db.ref("users/" + uid);
 
-  /* Link de convite (AJUSTADO PARA /1/) */
-  const uSnap = await db.ref("users/"+uid).get();
-  const inviteCode = uSnap.val()?.inviteCode || "";
+  /* 🔐 GARANTE inviteCode */
+  const snap = await userRef.get();
+  let inviteCode = snap.val()?.inviteCode;
 
+  if(!inviteCode){
+    inviteCode = uid.substring(0,6).toUpperCase();
+    await userRef.update({ inviteCode });
+  }
+
+  /* Link correto para GitHub Pages */
   document.getElementById("affiliateLink").value =
     `${location.origin}/1/registrar.html?invite=${inviteCode}`;
 
@@ -152,7 +159,7 @@ auth.onAuthStateChanged(async user=>{
     });
 });
 
-/* Copiar link (moderno) */
+/* Copiar link */
 function copyLink(){
   const link = document.getElementById("affiliateLink").value;
   navigator.clipboard.writeText(link)
@@ -162,4 +169,4 @@ function copyLink(){
 </script>
 
 </body>
-</html>
+  </html>
