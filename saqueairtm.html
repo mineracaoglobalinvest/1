@@ -45,10 +45,12 @@ button{
   margin-top:10px;
   background:#3b3f5c;
   color:#999;
+  cursor:not-allowed;
 }
 button.active{
   background:#16a34a;
   color:#fff;
+  cursor:pointer;
 }
 .small{
   font-size:13px;
@@ -93,6 +95,7 @@ button.active{
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
 <script>
+/* Firebase */
 const firebaseConfig={
   apiKey:"AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
   authDomain:"mineracao-global-invest.firebaseapp.com",
@@ -101,59 +104,70 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 
-// 🔹 Regras
+/* Regras */
 const TAXA_INTERNA = 1000;
 const TAXA_AIRTM  = 1146.01;
 
-let uid="", saldoKz=0, nome="";
+/* Estado */
+let uid = "";
+let saldoKz = 0;
+let nome = "";
 
+/* Util */
 function saqueDisponivel(){
   const h = new Date().getHours();
   return h >= 8 && h < 16;
 }
 
+/* Auth */
 firebase.auth().onAuthStateChanged(user=>{
   if(!user){
-    location.href="index.html";
+    location.href = "index.html";
     return;
   }
 
   uid = user.uid;
 
-  firebase.database().ref("users/"+uid).on("value", snap=>{
+  firebase.database().ref("users/" + uid).on("value", snap=>{
     const d = snap.val() || {};
     saldoKz = Number(d.saldo || 0);
     nome = d.name || "";
 
-    const saldoUsdt = saldoKz / TAXA_INTERNA;
-    saldoUsdt.innerText = saldoUsdt.toFixed(2) + " USDT";
+    const saldoUsdtCalc = saldoKz / TAXA_INTERNA;
 
-    atualizarEstadoBotao(saldoUsdt);
+    document.getElementById("saldoUsdt").innerText =
+      saldoUsdtCalc.toFixed(2) + " USDT";
+
+    atualizarEstadoBotao(saldoUsdtCalc);
   });
 });
 
+/* Botão */
 function atualizarEstadoBotao(saldoUsdt){
   const disponivel = saqueDisponivel();
   const podeSacar = saldoUsdt >= 1 && disponivel;
 
+  const btn = document.getElementById("btn");
   btn.classList.toggle("active", podeSacar);
 
-  horarioTxt.innerText = disponivel
-    ? "Saques disponíveis agora"
-    : "Saques apenas das 08h às 16h";
+  document.getElementById("horarioTxt").innerText =
+    disponivel
+      ? "Saques disponíveis agora"
+      : "Saques apenas das 08h às 16h";
 }
 
-// Preview USDT → Kz
-valor.addEventListener("input", ()=>{
+/* Preview */
+document.getElementById("valor").addEventListener("input", ()=>{
   const usdt = Number(valor.value);
   const kz = usdt * TAXA_AIRTM;
 
-  previewKz.innerText =
+  document.getElementById("previewKz").innerText =
     usdt >= 1
       ? `Você receberá: ${kz.toFixed(2)} Kz`
       : "Valor mínimo: 1 USDT";
 });
 
+/* Retirada */
 function retirar(){
   if(!saqueDisponivel())
     return alert("Saques disponíveis apenas das 08h às 16h");
@@ -170,13 +184,13 @@ function retirar(){
 
   const kzReceber = usdt * TAXA_AIRTM;
 
-  const saldoRef = firebase.database().ref("users/"+uid+"/saldo");
+  const saldoRef = firebase.database().ref("users/" + uid + "/saldo");
 
-  saldoRef.transaction(s=>{
-    if(s === null || s < kzNecessario) return;
-    return s - kzNecessario;
-  }, (err, ok)=>{
-    if(ok){
+  saldoRef.transaction(saldo=>{
+    if(saldo === null || saldo < kzNecessario) return;
+    return saldo - kzNecessario;
+  }, (err, committed)=>{
+    if(committed){
       firebase.database().ref("withdrawals").push({
         uid,
         nome,
@@ -192,9 +206,9 @@ function retirar(){
       });
 
       alert("Retirada AIRTM solicitada com sucesso!");
-      valor.value="";
-      emailAirtm.value="";
-      previewKz.innerText="Você receberá: 0.00 Kz";
+      valor.value = "";
+      emailAirtm.value = "";
+      previewKz.innerText = "Você receberá: 0.00 Kz";
     }else{
       alert("Erro ao processar retirada");
     }
@@ -203,4 +217,4 @@ function retirar(){
 </script>
 
 </body>
-</html>
+  </html>
