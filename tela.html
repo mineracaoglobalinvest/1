@@ -27,7 +27,7 @@ body{
   max-width:420px;
   width:100%;
   min-height:100vh;
-  padding-bottom:150px;
+  padding-bottom:170px;
 }
 
 /* HEADER */
@@ -132,19 +132,17 @@ header{
   cursor:pointer;
 }
 
-/* IMAGEM ABAIXO DOS BOTÕES */
+/* IMAGEM */
 .logo-section{
   margin-top:20px;
 }
-
 .logo-section img{
-  width:100%;        /* ocupa toda a largura do container */
-  height:auto;       /* mantém proporção */
+  width:100%;
+  height:auto;
   display:block;
-  border-radius:0;   /* sem cantos arredondados */
 }
 
-/* BOTÕES DE HISTÓRICO */
+/* HISTÓRICO */
 .history-buttons{
   margin-top:20px;
   display:flex;
@@ -153,15 +151,11 @@ header{
 }
 
 .history-btn{
-  width:100%;
   padding:16px;
   font-weight:700;
-  font-size:14px;
-  border:none;
   border-radius:18px;
+  border:none;
   cursor:pointer;
-  text-align:center;
-  color:#000;
   background:linear-gradient(135deg,#f5dc84,#d4af37,#9e7c19);
 }
 
@@ -175,16 +169,15 @@ header{
 }
 .info-box strong{color:var(--gold);}
 
-/* LEGAL TEXT */
+/* LEGAL */
 .legal{
   padding:20px;
   font-size:11px;
   opacity:.75;
-  line-height:1.5;
   text-align:center;
 }
 
-/* FOOTER WHATSAPP */
+/* FOOTER */
 .footer-wpp{
   position:fixed;
   bottom:0;
@@ -199,22 +192,28 @@ header{
 
 .footer-actions{
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
 }
 
 .footer-btn{
   background:linear-gradient(135deg,#25D366,#1ebe5d);
   color:#000;
   border-radius:16px;
-  padding:14px 10px;
+  padding:12px 6px;
   font-weight:800;
+  font-size:12px;
   text-align:center;
-  font-size:13px;
   cursor:pointer;
 }
+
 .footer-btn.support{
   background:linear-gradient(135deg,#f5dc84,#d4af37,#9e7c19);
+}
+
+.footer-btn.aff{
+  background:linear-gradient(135deg,#00c6ff,#0072ff);
+  color:#fff;
 }
 </style>
 </head>
@@ -271,31 +270,25 @@ header{
     <div class="action" onclick="go('saque.html')">💸 Retirar</div>
   </div>
 
-  <!-- IMAGEM EXTENSA ABAIXO DOS BOTÕES -->
   <div class="logo-section">
-    <img src="logo2.jpg" alt="Logo Mineração Global Invest">
+    <img src="logo2.jpg">
   </div>
 
-  <!-- BOTÕES DE HISTÓRICO ABAIXO DA IMAGEM -->
   <div class="history-buttons">
-    <button class="history-btn" onclick="go( 'meudeposito.html')">HISTÓRICO DE DEPÓSITO</button>
+    <button class="history-btn" onclick="go('meudeposito.html')">HISTÓRICO DE DEPÓSITO</button>
     <button class="history-btn" onclick="go('meusaques.html')">HISTÓRICO DE SAQUES</button>
   </div>
-
 </div>
 
 <div class="section">
   <div class="info-box">
     <strong>Sobre a plataforma</strong><br><br>
-    A <strong>Mineração Global Invest</strong> é uma plataforma digital focada em investimentos
-    institucionais através de núcleos de mineração, oferecendo acompanhamento em tempo real,
-    transparência e gestão segura.
+    Plataforma institucional de investimentos em mineração com gestão segura e transparente.
   </div>
 </div>
 
 <div class="legal">
-  🔒 Seus dados são protegidos por criptografia e não são compartilhados com terceiros.<br>
-  ⚠️ Investimentos envolvem riscos e ganhos passados não garantem resultados futuros.
+  🔒 Dados protegidos • ⚠️ Investimentos envolvem riscos
 </div>
 
 </div>
@@ -304,10 +297,13 @@ header{
 <div class="footer-wpp">
   <div class="footer-actions">
     <div class="footer-btn" onclick="window.open('https://chat.whatsapp.com/CTmKggiaud4Ij6wzaAGJ8A','_blank')">
-      💬 Grupo WhatsApp
+      💬 Grupo
     </div>
     <div class="footer-btn support" onclick="window.open('https://wa.me/244950548852','_blank')">
       🛎️ Suporte
+    </div>
+    <div class="footer-btn aff" onclick="go('afiliado.html')">
+      👥 Afiliados
     </div>
   </div>
 </div>
@@ -339,22 +335,10 @@ firebase.auth().onAuthStateChanged(user=>{
     saldoAOA.innerText="AOA "+saldo;
     saldoUSDT.innerText="≈ "+(saldo/TAXA_USDT).toFixed(2)+" USDT";
   });
-
-  firebase.database().ref("users/"+uid+"/investimentos").on("value",s=>{
-    let ativos=0, ganhos=0;
-    s.forEach(c=>{
-      const v=c.val();
-      if(v.status==="ativo")ativos++;
-      ganhos+=v.total||0;
-    });
-    ativosResumo.innerText=ativos;
-    ganhosAOA.innerText="AOA "+ganhos;
-    ganhosUSDT.innerText="≈ "+(ganhos/TAXA_USDT).toFixed(2)+" USDT";
-  });
 });
 
 function go(p){location.href=p}
 </script>
 
 </body>
-    </html>
+  </html>
