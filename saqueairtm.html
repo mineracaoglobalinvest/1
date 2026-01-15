@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retirada AIRTM</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Segoe UI,Arial;
+  background:#0b0f1f;
+  color:#fff;
+}
+.container{
+  max-width:420px;
+  margin:auto;
+  padding:20px;
+}
+h3{margin-bottom:15px;}
+.card{
+  background:#1b1f33;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:12px;
+}
+.info{
+  display:flex;
+  justify-content:space-between;
+  margin:6px 0;
+  color:#cbd5f5;
+}
+input,button{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:none;
+  font-size:15px;
+}
+input{
+  background:#2a2e4a;
+  color:#fff;
+}
+button{
+  margin-top:10px;
+  background:#3b3f5c;
+  color:#999;
+}
+button.active{
+  background:#16a34a;
+  color:#fff;
+}
+.small{
+  font-size:13px;
+  color:#9ca3af;
+  margin-top:6px;
+}
+.small.warn{
+  color:#facc15;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h3>AIRTM</h3>
+
+<div class="card">
+  <div class="info">
+    <span>Saldo disponível</span>
+    <span id="saldoUsdt">0.00 USDT</span>
+  </div>
+  <div class="small warn" id="horarioTxt"></div>
+</div>
+
+<div class="card">
+  <input id="emailAirtm" type="email" placeholder="Email da conta AIRTM">
+  <div class="small">O email deve estar correto</div>
+</div>
+
+<div class="card">
+  <input id="valor" type="number" step="0.01" placeholder="Valor em USDT (mín. 1)">
+  <div class="small" id="previewKz">Você receberá: 0.00 Kz</div>
+</div>
+
+<button id="btn" onclick="retirar()">RETIRAR</button>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig={
+  apiKey:"AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+  authDomain:"mineracao-global-invest.firebaseapp.com",
+  databaseURL:"https://mineracao-global-invest-default-rtdb.firebaseio.com",
+  projectId:"mineracao-global-invest"
+};
+firebase.initializeApp(firebaseConfig);
+
+// 🔹 Regras
+const TAXA_INTERNA = 1000;
+const TAXA_AIRTM  = 1146.01;
+
+let uid="", saldoKz=0, nome="";
+
+function saqueDisponivel(){
+  const h = new Date().getHours();
+  return h >= 8 && h < 16;
+}
+
+firebase.auth().onAuthStateChanged(user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+
+  uid = user.uid;
+
+  firebase.database().ref("users/"+uid).on("value", snap=>{
+    const d = snap.val() || {};
+    saldoKz = Number(d.saldo || 0);
+    nome = d.name || "";
+
+    const saldoUsdt = saldoKz / TAXA_INTERNA;
+    saldoUsdt.innerText = saldoUsdt.toFixed(2) + " USDT";
+
+    atualizarEstadoBotao(saldoUsdt);
+  });
+});
+
+function atualizarEstadoBotao(saldoUsdt){
+  const disponivel = saqueDisponivel();
+  const podeSacar = saldoUsdt >= 1 && disponivel;
+
+  btn.classList.toggle("active", podeSacar);
+
+  horarioTxt.innerText = disponivel
+    ? "Saques disponíveis agora"
+    : "Saques apenas das 08h às 16h";
+}
+
+// Preview USDT → Kz
+valor.addEventListener("input", ()=>{
+  const usdt = Number(valor.value);
+  const kz = usdt * TAXA_AIRTM;
+
+  previewKz.innerText =
+    usdt >= 1
+      ? `Você receberá: ${kz.toFixed(2)} Kz`
+      : "Valor mínimo: 1 USDT";
+});
+
+function retirar(){
+  if(!saqueDisponivel())
+    return alert("Saques disponíveis apenas das 08h às 16h");
+
+  const usdt = Number(valor.value);
+  const email = emailAirtm.value.trim();
+
+  if(!email) return alert("Informe o email AIRTM");
+  if(usdt < 1) return alert("Valor mínimo é 1 USDT");
+
+  const kzNecessario = usdt * TAXA_INTERNA;
+  if(kzNecessario > saldoKz)
+    return alert("Saldo insuficiente");
+
+  const kzReceber = usdt * TAXA_AIRTM;
+
+  const saldoRef = firebase.database().ref("users/"+uid+"/saldo");
+
+  saldoRef.transaction(s=>{
+    if(s === null || s < kzNecessario) return;
+    return s - kzNecessario;
+  }, (err, ok)=>{
+    if(ok){
+      firebase.database().ref("withdrawals").push({
+        uid,
+        nome,
+        metodo: "AIRTM",
+        email,
+        usdtSolicitado: usdt,
+        kzDebitado: kzNecessario,
+        kzRecebera: Number(kzReceber.toFixed(2)),
+        taxaInterna: TAXA_INTERNA,
+        taxaAirtm: TAXA_AIRTM,
+        status: "pendente",
+        criadoEm: Date.now()
+      });
+
+      alert("Retirada AIRTM solicitada com sucesso!");
+      valor.value="";
+      emailAirtm.value="";
+      previewKz.innerText="Você receberá: 0.00 Kz";
+    }else{
+      alert("Erro ao processar retirada");
+    }
+  });
+}
+</script>
+
+</body>
+</html>

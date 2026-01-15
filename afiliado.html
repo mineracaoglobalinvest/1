@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programa de Afiliados</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<style>
+body{margin:0;font-family:'Segoe UI',sans-serif;background:#eef2f7;}
+.container{max-width:900px;margin:40px auto;padding:20px;background:#fff;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.1);}
+h2{text-align:center;margin-bottom:20px;}
+.card{background:#f5f5f5;padding:15px;border-radius:12px;margin-bottom:15px;}
+.stats{display:flex;flex-wrap:wrap;}
+.stat{flex:1;min-width:200px;background:#d1fae5;margin:5px;padding:15px;border-radius:10px;text-align:center;}
+.valor{font-size:22px;font-weight:bold;}
+.input-group{display:flex;}
+.input-group input{flex:1;padding:10px;border:none;border-radius:8px 0 0 8px;}
+.input-group button{padding:10px 15px;border:none;border-radius:0 8px 8px 0;background:#22c55e;color:#fff;}
+small{display:block;color:#065f46;}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>Programa de Afiliados</h2>
+
+<div class="card">
+<h3>Seu link de convite</h3>
+<div class="input-group">
+<input id="affiliateLink" readonly>
+<button onclick="copyLink()">Copiar</button>
+</div>
+</div>
+
+<div class="card">
+<h3>Resumo por Nível</h3>
+<div class="stats">
+
+<div class="stat">
+<h4>Nível 1</h4>
+<p id="n1_convidados">👥 0 convidados</p>
+<p id="n1_depositos">💰 0 depósitos</p>
+<small>Comissão: 30%</small>
+</div>
+
+<div class="stat">
+<h4>Nível 2</h4>
+<p id="n2_convidados">👥 0 convidados</p>
+<p id="n2_depositos">💰 0 depósitos</p>
+<small>Comissão: 5%</small>
+</div>
+
+<div class="stat">
+<h4>Nível 3</h4>
+<p id="n3_convidados">👥 0 convidados</p>
+<p id="n3_depositos">💰 0 depósitos</p>
+<small>Comissão: 1%</small>
+</div>
+
+</div>
+</div>
+
+<div class="card">
+<h3>Total ganho em comissões</h3>
+<p class="valor" id="saldoAfiliado">0 KZ</p>
+</div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+  authDomain: "mineracao-global-invest.firebaseapp.com",
+  databaseURL: "https://mineracao-global-invest-default-rtdb.firebaseio.com",
+  projectId: "mineracao-global-invest",
+  storageBucket: "mineracao-global-invest.appspot.com",
+  messagingSenderId: "445980296714",
+  appId: "1:445980296714:web:6429a74505161d265841f3"
+};
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.database();
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+
+  const uid = user.uid;
+
+  // Link convite
+  const uSnap = await db.ref("users/"+uid).get();
+  document.getElementById("affiliateLink").value =
+    `${location.origin}/registrar.html?invite=${uSnap.val().inviteCode}`;
+
+  // -------- CONVIDADOS POR NÍVEL --------
+  db.ref("users").on("value", snap=>{
+    const users = snap.val() || {};
+    let n1=0, n2=0, n3=0;
+
+    for(const id in users){
+      const u = users[id];
+      if(u.convidadoPor === uid) n1++;
+
+      if(u.convidadoPor && users[u.convidadoPor]?.convidadoPor === uid) n2++;
+
+      if(u.convidadoPor &&
+         users[u.convidadoPor] &&
+         users[users[u.convidadoPor].convidadoPor]?.convidadoPor === uid) n3++;
+    }
+
+    document.getElementById("n1_convidados").innerText = `👥 ${n1} convidados`;
+    document.getElementById("n2_convidados").innerText = `👥 ${n2} convidados`;
+    document.getElementById("n3_convidados").innerText = `👥 ${n3} convidados`;
+  });
+
+  // -------- COMISSÕES REAIS --------
+  db.ref("commissions")
+    .orderByChild("toUid")
+    .equalTo(uid)
+    .on("value", snap=>{
+      let total = 0, d1=0, d2=0, d3=0;
+
+      snap.forEach(c=>{
+        const v = c.val();
+        total += Number(v.valorComissao || 0);
+        if(v.nivel===1) d1++;
+        if(v.nivel===2) d2++;
+        if(v.nivel===3) d3++;
+      });
+
+      document.getElementById("saldoAfiliado").innerText = total.toFixed(2)+" KZ";
+      document.getElementById("n1_depositos").innerText = `💰 ${d1} depósitos`;
+      document.getElementById("n2_depositos").innerText = `💰 ${d2} depósitos`;
+      document.getElementById("n3_depositos").innerText = `💰 ${d3} depósitos`;
+    });
+});
+
+function copyLink(){
+  const i = document.getElementById("affiliateLink");
+  i.select();
+  document.execCommand("copy");
+  alert("Link copiado!");
+}
+</script>
+
+</body>
+</html>

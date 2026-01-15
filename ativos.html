@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>MINERAÇÃO GLOBAL INVEST</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#0b1c2d;
+  --blue2:#081726;
+  --gold:#d4af37;
+  --white:#ffffff;
+}
+
+body{
+  margin:0;
+  padding:20px;
+  font-family:'Segoe UI', system-ui, sans-serif;
+  background:linear-gradient(180deg,var(--blue),var(--blue2));
+  color:var(--white);
+}
+
+h1{
+  text-align:center;
+  color:var(--gold);
+  letter-spacing:2px;
+  margin-bottom:35px;
+}
+
+#listaAtivos{
+  max-width:1100px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:26px;
+}
+
+.card{
+  background:linear-gradient(180deg,#102a43,#050f1c);
+  border-radius:22px;
+  box-shadow:0 20px 50px rgba(0,0,0,.6);
+  overflow:hidden;
+  border:1px solid rgba(212,175,55,.35);
+}
+
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 20px;
+  background:rgba(212,175,55,.08);
+}
+
+.card-header h2{
+  margin:0;
+  font-size:1rem;
+  color:var(--gold);
+  letter-spacing:1px;
+}
+
+.contador{
+  background:var(--gold);
+  color:#000;
+  padding:5px 12px;
+  border-radius:12px;
+  font-weight:700;
+  font-size:.85rem;
+}
+
+.card-body{
+  padding:18px 20px;
+}
+
+.info{
+  display:flex;
+  justify-content:space-between;
+  margin:12px 0;
+  font-size:.95rem;
+}
+
+.etiqueta{opacity:.9}
+.valor{color:var(--gold);font-weight:700}
+</style>
+</head>
+
+<body>
+
+<h1>Meus Núcleos Ativos</h1>
+<div id="listaAtivos"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+  authDomain:"mineracao-global-invest.firebaseapp.com",
+  databaseURL:"https://mineracao-global-invest-default-rtdb.firebaseio.com"
+});
+
+const lista = document.getElementById("listaAtivos");
+let uid=null;
+
+firebase.auth().onAuthStateChanged(u=>{
+  if(!u){location.href="index.html";return;}
+  uid=u.uid;
+  carregar();
+});
+
+function carregar(){
+  firebase.database().ref("users/"+uid+"/investimentos").on("value",snap=>{
+    lista.innerHTML="";
+    const agora=Date.now();
+
+    snap.forEach(c=>{
+      const inv=c.val();
+      const key=c.key;
+      if(inv.status!=="ativo")return;
+
+      const duracao=inv.dias*24*60*60*1000;
+      const fim=inv.inicio+duracao;
+      const restante=fim-agora;
+
+      if(restante<=0){
+        finalizar(inv,key);
+        return;
+      }
+
+      const rendaDiaria=inv.total/inv.dias;
+
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=`
+        <div class="card-header">
+          <h2>NÚCLEO DE MINERAÇÃO</h2>
+          <span class="contador">...</span>
+        </div>
+        <div class="card-body">
+          <div class="info"><span class="etiqueta">Investimento</span><span class="valor">AOA ${inv.valor}</span></div>
+          <div class="info"><span class="etiqueta">Renda diária</span><span class="valor">AOA ${rendaDiaria}</span></div>
+          <div class="info"><span class="etiqueta">Total ao final</span><span class="valor">AOA ${inv.total}</span></div>
+        </div>
+      `;
+      lista.appendChild(card);
+
+      atualizarContador(card.querySelector(".contador"),inv.inicio,duracao,()=>finalizar(inv,key));
+    });
+  });
+}
+
+function finalizar(inv,key){
+  firebase.database().ref("users/"+uid+"/saldo").once("value").then(s=>{
+    const saldo=s.val()||0;
+    firebase.database().ref("users/"+uid+"/saldo").set(saldo+inv.total);
+    firebase.database().ref("users/"+uid+"/investimentos/"+key+"/status").set("concluído");
+  });
+}
+
+function atualizarContador(el,inicio,duracao,cb){
+  function tick(){
+    const r=(inicio+duracao)-Date.now();
+    if(r<=0){
+      el.textContent="Concluído";
+      cb();
+      return;
+    }
+    const s=Math.floor(r/1000);
+    const d=Math.floor(s/86400);
+    const h=Math.floor((s%86400)/3600);
+    const m=Math.floor((s%3600)/60);
+    el.textContent=d>0?`${d} dias`:`${h}h ${m}m`;
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+</script>
+
+</body>
+</html>

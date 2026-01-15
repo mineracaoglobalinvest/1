@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>PAYPAY - Depósito</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html, body{width:100%;overflow-x:hidden;font-family:Segoe UI,sans-serif;background:#0b1020;color:#fff;}
+.container{max-width:420px;width:100%;margin:auto;padding:20px;}
+.header{display:flex;align-items:center;gap:10px;margin-bottom:20px;cursor:pointer;}
+.card{background:#121a2f;border-radius:18px;padding:20px;margin-bottom:18px;word-wrap: break-word;}
+input, button{width:100%;max-width:100%;padding:14px;border:none;border-radius:12px;margin-top:12px;font-size:15px;}
+input{background:#1a2340;color:#fff;}
+input[type=file]{padding:10px;}
+button{background:#22c55e;font-weight:bold;}
+button:disabled{background:#555;}
+.small{color:#9aa3c7;font-size:13px;line-height:1.6;}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header" onclick="window.location='deposito.html'">← Voltar</div>
+<h3>PAYPAY</h3>
+
+<div class="card small">
+<b>Passos para Depositar:</b><br>
+1. ABRA O APLICATIVO PAYPAY<br>
+2. Faça o pagamento usando o número: <b>950548852</b><br>
+3. Anexe o comprovativo<br>
+4. Aguarde a aprovação
+</div>
+
+<input id="valor" type="number" placeholder="Valor em Kz (mínimo 5.000)">
+<input id="comprovativo" type="file" accept="image/*,application/pdf">
+<button id="btnDepositar" onclick="depositar()">DEPOSITAR</button>
+
+</div>
+
+<script>
+const firebaseConfig = {
+ apiKey:"AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+ authDomain:"mineracao-global-invest.firebaseapp.com",
+ databaseURL:"https://mineracao-global-invest-default-rtdb.firebaseio.com",
+ projectId:"mineracao-global-invest",
+ storageBucket:"mineracao-global-invest.firebasestorage.app",
+ messagingSenderId:"445980296714",
+ appId:"1:445980296714:web:mineracao_global"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.database();
+auth.signInAnonymously().catch(console.error);
+
+function depositar(){
+  const valor = Number(document.getElementById("valor").value);
+  const fileInput = document.getElementById("comprovativo");
+  const btn = document.getElementById("btnDepositar");
+
+  if(!valor || valor < 5000){
+    alert("O valor mínimo de depósito é 5.000 Kz.");
+    return;
+  }
+
+  if(fileInput.files.length === 0){
+    alert("Anexe o comprovativo do pagamento.");
+    return;
+  }
+
+  const user = auth.currentUser;
+  if(!user){ alert("Erro: usuário não identificado."); return; }
+
+  btn.disabled = true; btn.innerText = "Enviando...";
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+    db.ref("depositos").push({
+      uid: user.uid,
+      metodo: "PAYPAY",
+      valor: valor,
+      numero: "950548852",
+      comprovativo: e.target.result,
+      status: "pendente",
+      criadoEm: Date.now()
+    }).then(()=>{
+      alert("Pedido PAYPAY enviado com sucesso!");
+      btn.disabled = false; btn.innerText = "DEPOSITAR";
+      document.getElementById("valor").value="";
+      fileInput.value="";
+    });
+  };
+  reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Meus Depósitos</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html, body{
+  width:100%;
+  overflow-x:hidden;
+  font-family:Segoe UI,sans-serif;
+  background:#0b1020;
+  color:#fff;
+}
+.container{max-width:600px;width:100%;margin:auto;padding:20px;}
+.header{display:flex;align-items:center;gap:10px;margin-bottom:20px;cursor:pointer;}
+h3{margin-bottom:15px;}
+.filter{
+  margin-bottom:15px;
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  background:#1a2340;
+  color:#fff;
+  border:none;
+  font-size:15px;
+}
+.card{
+  background:#121a2f;
+  border-radius:18px;
+  padding:15px;
+  margin-bottom:12px;
+  word-wrap: break-word;
+}
+.card b{color:#3b82f6;}
+.status{font-weight:bold;}
+.status.pendente{color:#facc15;}
+.status.aprovado{color:#22c55e;}
+.status.rejeitado{color:#ef4444;}
+.small{color:#9aa3c7;font-size:13px;line-height:1.5;margin-top:5px;}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="header" onclick="window.location='deposito.html'">← Voltar</div>
+  <h3>Meus Depósitos</h3>
+
+  <select id="filtroMetodo" class="filter">
+    <option value="todos">Todos</option>
+    <option value="AIRTM">AIRTM</option>
+    <option value="MULTICAIXA">MULTICAIXA</option>
+    <option value="PAYPAY">PAYPAY</option>
+  </select>
+
+  <div id="depositosList"></div>
+
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+  authDomain: "mineracao-global-invest.firebaseapp.com",
+  databaseURL: "https://mineracao-global-invest-default-rtdb.firebaseio.com",
+  projectId: "mineracao-global-invest",
+  storageBucket: "mineracao-global-invest.firebasestorage.app",
+  messagingSenderId: "445980296714",
+  appId: "1:445980296714:web:mineracao_global"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.database();
+
+let depositos = [];
+
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    // Não está logado
+    window.location.href = "login.html";
+    return;
+  }
+
+  const uid = user.uid;
+
+  db.ref("depositos")
+    .orderByChild("uid")
+    .equalTo(uid)
+    .on("value", snapshot => {
+      depositos = [];
+      snapshot.forEach(child => {
+        depositos.push(child.val());
+      });
+      renderDepositos();
+    });
+});
+
+const filtro = document.getElementById("filtroMetodo");
+filtro.addEventListener("change", renderDepositos);
+
+function renderDepositos(){
+  const list = document.getElementById("depositosList");
+  list.innerHTML = "";
+
+  const filtroValor = filtro.value;
+  const filtrados = filtroValor === "todos"
+    ? depositos
+    : depositos.filter(d => d.metodo === filtroValor);
+
+  if (filtrados.length === 0) {
+    list.innerHTML = "<p class='small'>Nenhum depósito encontrado.</p>";
+    return;
+  }
+
+  filtrados.forEach(d => {
+    const date = new Date(d.criadoEm);
+
+    let moeda = d.metodo === "AIRTM" ? "USDT" : "Kz";
+    const contato = d.email || d.numero || d.referencia || "-";
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div><b>Método:</b> ${d.metodo}</div>
+      <div><b>Valor:</b> ${d.valor} ${moeda}</div>
+      <div><b>${d.metodo === "AIRTM" ? "Email" : "Número/Referência"}:</b> ${contato}</div>
+      <div><b>Status:</b> <span class="status ${d.status.toLowerCase()}">${d.status}</span></div>
+      <div class="small"><b>Data:</b> ${date.toLocaleString()}</div>
+    `;
+    list.appendChild(card);
+  });
+}
+</script>
+</body>
+</html>

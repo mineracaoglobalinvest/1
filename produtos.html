@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MINERAÇÃO GLOBAL INVEST</title>
+
+<style>
+:root{
+  --blue:#0b1c2d;
+  --blue2:#081726;
+  --gold:#d4af37;
+  --white:#ffffff;
+}
+
+body{
+  margin:0;
+  font-family:'Segoe UI', system-ui, sans-serif;
+  background:linear-gradient(180deg,var(--blue),var(--blue2));
+  color:var(--white);
+}
+
+.top{
+  padding:35px 20px 20px;
+  text-align:center;
+}
+
+.top h1{
+  margin:0;
+  font-size:28px;
+  letter-spacing:2px;
+  color:var(--gold);
+}
+
+.top p{
+  margin-top:10px;
+  font-size:14px;
+  opacity:.85;
+}
+
+.saldo{
+  max-width:420px;
+  margin:20px auto 40px;
+  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
+  border:1px solid rgba(212,175,55,.5);
+  border-radius:22px;
+  padding:20px;
+  text-align:center;
+  box-shadow:0 15px 40px rgba(0,0,0,.45);
+}
+
+.saldo span{font-size:13px;opacity:.85}
+.saldo strong{display:block;margin-top:8px;font-size:30px;color:var(--gold)}
+
+.planos{
+  max-width:1200px;
+  margin:auto;
+  padding:0 18px 70px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:34px;
+}
+
+.plano{
+  position:relative;
+  padding:26px 22px 30px;
+  border-radius:30px;
+  background:
+    radial-gradient(circle at top, rgba(212,175,55,.18), transparent 55%),
+    linear-gradient(180deg, #102a43, #050f1c);
+  box-shadow:
+    0 30px 70px rgba(0,0,0,.6),
+    inset 0 0 0 1px rgba(212,175,55,.35);
+  overflow:hidden;
+}
+
+.plano::before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background:linear-gradient(120deg,transparent 45%,rgba(212,175,55,.45),transparent 55%);
+  animation: brilho 8s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes brilho{
+  from{transform:rotate(0)}
+  to{transform:rotate(360deg)}
+}
+
+.plano h3{
+  text-align:center;
+  color:var(--gold);
+  letter-spacing:3px;
+}
+
+.valor{
+  width:170px;height:170px;margin:18px auto;
+  border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,#f3dc8b 35%,#a37b16 60%);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#000;
+  box-shadow:0 0 0 6px rgba(212,175,55,.25),0 0 50px rgba(212,175,55,.65);
+}
+
+.desc{text-align:center;font-size:13px;opacity:.85;margin-bottom:20px}
+
+.item{
+  display:flex;justify-content:space-between;
+  padding:12px 14px;background:rgba(0,0,0,.45);
+  border-radius:14px;margin-bottom:12px
+}
+
+.item strong{color:var(--gold)}
+
+.plano button{
+  width:100%;
+  margin-top:20px;
+  padding:16px;
+  border:none;
+  border-radius:50px;
+  background:linear-gradient(135deg,#f5dc84,#d4af37,#9e7c19);
+  font-weight:800;
+  cursor:pointer;
+}
+
+#msg{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  align-items:center;
+  justify-content:center;
+}
+
+#msg div{
+  background:#fff;
+  color:#000;
+  padding:26px;
+  border-radius:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+  <h1>MINERAÇÃO GLOBAL INVEST</h1>
+  <p>Plataforma internacional de mineração financeira</p>
+</div>
+
+<div class="saldo">
+  <span>Saldo disponível</span>
+  <strong id="saldo">AOA 0</strong>
+</div>
+
+<div class="planos">
+
+  <div class="plano" data-preco="5000">
+    <h3>START CORE</h3>
+    <div class="valor">AOA<br>5.000</div>
+    <div class="desc">Mineração inicial automatizada</div>
+    <div class="item"><span>Duração</span><strong>31 dias</strong></div>
+    <div class="item renda"></div>
+    <div class="item total"></div>
+    <button onclick="investir(5000)">Ativar núcleo</button>
+  </div>
+
+  <div class="plano" data-preco="10000">
+    <h3>BASIC CORE</h3>
+    <div class="valor">AOA<br>10.000</div>
+    <div class="desc">Rendimento equilibrado</div>
+    <div class="item"><span>Duração</span><strong>31 dias</strong></div>
+    <div class="item renda"></div>
+    <div class="item total"></div>
+    <button onclick="investir(10000)">Ativar núcleo</button>
+  </div>
+
+  <div class="plano" data-preco="20000">
+    <h3>PLUS CORE</h3>
+    <div class="valor">AOA<br>20.000</div>
+    <div class="desc">Alta performance de mineração</div>
+    <div class="item"><span>Duração</span><strong>31 dias</strong></div>
+    <div class="item renda"></div>
+    <div class="item total"></div>
+    <button onclick="investir(20000)">Ativar núcleo</button>
+  </div>
+
+  <div class="plano" data-preco="50000">
+    <h3>PRO CORE</h3>
+    <div class="valor">AOA<br>50.000</div>
+    <div class="desc">Mineração profissional de alta escala</div>
+    <div class="item"><span>Duração</span><strong>31 dias</strong></div>
+    <div class="item renda"></div>
+    <div class="item total"></div>
+    <button onclick="investir(50000)">Ativar núcleo</button>
+  </div>
+
+  <div class="plano" data-preco="100000">
+    <h3>ELITE CORE</h3>
+    <div class="valor">AOA<br>100.000</div>
+    <div class="desc">Núcleo institucional de mineração global</div>
+    <div class="item"><span>Duração</span><strong>31 dias</strong></div>
+    <div class="item renda"></div>
+    <div class="item total"></div>
+    <button onclick="investir(100000)">Ativar núcleo</button>
+  </div>
+
+</div>
+
+<div id="msg"><div id="msgTxt"></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+  authDomain:"mineracao-global-invest.firebaseapp.com",
+  databaseURL:"https://mineracao-global-invest-default-rtdb.firebaseio.com"
+});
+
+let uid=null,saldo=0;
+const DIAS=31;
+const TAXA=0.20;
+
+firebase.auth().onAuthStateChanged(u=>{
+  if(!u){location.href="index.html";return;}
+  uid=u.uid;
+  firebase.database().ref("users/"+uid).on("value",s=>{
+    saldo=s.val()?.saldo||0;
+    document.getElementById("saldo").innerText="AOA "+saldo;
+  });
+});
+
+function popup(t){
+  msgTxt.innerText=t;
+  msg.style.display="flex";
+  setTimeout(()=>msg.style.display="none",4000);
+}
+
+function investir(valor){
+  if(saldo<valor){popup("Saldo insuficiente");return;}
+  const renda=valor*TAXA;
+  const total=renda*DIAS;
+
+  firebase.database().ref("users/"+uid+"/investimentos").push({
+    valor,renda,total,dias:DIAS,inicio:Date.now(),status:"ativo"
+  }).then(()=>{
+    firebase.database().ref("users/"+uid+"/saldo").set(saldo-valor);
+    popup("Mineração ativada com sucesso");
+  });
+}
+
+document.querySelectorAll(".plano").forEach(p=>{
+  const v=+p.dataset.preco;
+  p.querySelector(".renda").innerHTML =
+    `<span>Renda diária</span><strong>AOA ${v*TAXA}</strong>`;
+  p.querySelector(".total").innerHTML =
+    `<span>Renda total</span><strong>AOA ${v*TAXA*DIAS}</strong>`;
+});
+</script>
+
+</body>
+</html>

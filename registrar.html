@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registrar | Plataforma</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+body{min-height:100vh;background:#eef2f7;display:flex;justify-content:center;}
+.container{width:100%;max-width:420px;min-height:100vh;}
+.header{height:200px;border-bottom-left-radius:30px;border-bottom-right-radius:30px;background:url('logo.jpg') center/cover no-repeat;}
+.header-text{text-align:center;margin:20px 0;}
+.login-box{padding:30px 25px;}
+.input-group{margin-bottom:18px;}
+.input-group input{width:100%;padding:15px;border:none;border-radius:12px;box-shadow:0 5px 15px rgba(0,0,0,.06);}
+button{width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:16px;font-weight:bold;cursor:pointer;}
+.footer{text-align:center;margin-top:18px;}
+.footer a{color:#16a34a;font-weight:600;text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"></div>
+  <div class="header-text">
+    <h2>Crie sua conta!</h2>
+    <p>Cadastre-se usando seu nome e número de celular</p>
+  </div>
+  <div class="login-box">
+    <div class="input-group">
+      <input id="name" placeholder="Seu nome completo">
+    </div>
+    <div class="input-group">
+      <input id="phone" placeholder="+244 9XXXXXXXX">
+    </div>
+    <div class="input-group">
+      <input type="password" id="password" placeholder="Senha">
+    </div>
+    <div class="input-group">
+      <input type="password" id="confirmPassword" placeholder="Confirme a senha">
+    </div>
+    <!-- Código de convite (não editável) -->
+    <div class="input-group">
+      <input id="inviteCode" placeholder="Código de convite" readonly>
+    </div>
+    <button onclick="register()">Registrar</button>
+    <div class="footer">
+      Já tem conta? <a href="index.html">Entrar</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+  authDomain: "mineracao-global-invest.firebaseapp.com",
+  databaseURL: "https://mineracao-global-invest-default-rtdb.firebaseio.com",
+  projectId: "mineracao-global-invest",
+  storageBucket: "mineracao-global-invest.appspot.com",
+  messagingSenderId: "445980296714",
+  appId: "1:445980296714:web:6429a74505161d265841f3"
+};
+
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.database();
+
+const nameInput = document.getElementById("name");
+const phoneInput = document.getElementById("phone");
+const passwordInput = document.getElementById("password");
+const confirmPasswordInput = document.getElementById("confirmPassword");
+const inviteCodeInput = document.getElementById("inviteCode");
+
+// Preenche automaticamente se houver invite na URL
+const urlParams = new URLSearchParams(window.location.search);
+const inviteFromURL = urlParams.get("invite");
+if(inviteFromURL) inviteCodeInput.value = inviteFromURL.toUpperCase();
+
+async function register(){
+  const name = nameInput.value.trim();
+  const phone = phoneInput.value.trim();
+  const password = passwordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
+  const inviteCode = inviteCodeInput.value.trim();
+
+  if(!name || !phone || !password || !confirmPassword){
+    alert("Preencha todos os campos"); return;
+  }
+  if(password !== confirmPassword){
+    alert("Senhas não coincidem"); return;
+  }
+
+  const cleanPhone = phone.replace(/\D/g,'');
+  if(cleanPhone.length < 9){ alert("Número inválido"); return; }
+
+  const email = cleanPhone+"@mineracaoglobal.com";
+
+  try{
+    // Cria usuário no Firebase Auth
+    const cred = await auth.createUserWithEmailAndPassword(email,password);
+    const uid = cred.user.uid;
+
+    let saldoInicial = 500;
+    let convidadoPorUid = null;
+
+    if(inviteCode){
+      // Busca usuário que possui o código de convite de forma segura
+      const snapshot = await db.ref("users").orderByChild("inviteCode").equalTo(inviteCode).get();
+      const usersFound = snapshot.val();
+      if(usersFound){
+        convidadoPorUid = Object.keys(usersFound)[0]; // pega UID do usuário que convidou
+      }
+    }
+
+    // Gera código de convite próprio do usuário
+    const userInviteCode = uid.substring(0,6).toUpperCase();
+
+    // Salva no Database
+    await db.ref("users/"+uid).set({
+      name,
+      phone,
+      email,
+      saldo: saldoInicial,
+      inviteCode: userInviteCode,
+      convidadoPor: convidadoPorUid || null,
+      criadoEm: Date.now()
+    });
+
+    alert(`Conta criada com sucesso! Você recebeu ${saldoInicial} KZ.`);
+    window.location.href = "tela.html";
+
+  }catch(err){
+    console.error(err);
+    alert(err.message);
+  }
+}
+</script>
+</body>
+</html>

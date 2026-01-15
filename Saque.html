@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Métodos de Saque</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root{
+  --bg:#0b1020;
+  --card:#121a2f;
+  --text:#eaeaff;
+  --muted:#9aa3c7;
+  --accent:#22c55e;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Segoe UI',sans-serif;
+}
+
+body{
+  min-height:100vh;
+  background:linear-gradient(180deg,#0b1020,#070b18);
+  color:var(--text);
+}
+
+.container{
+  max-width:420px;
+  margin:auto;
+  padding:20px;
+}
+
+.header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:25px;
+}
+
+.header i{
+  font-size:20px;
+  cursor:pointer;
+}
+
+.header h2{
+  font-size:18px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+}
+
+.method{
+  background:var(--card);
+  border-radius:18px;
+  padding:22px 15px;
+  text-align:center;
+  cursor:pointer;
+  transition:.2s;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
+}
+
+.method:hover{
+  transform:translateY(-4px);
+}
+
+.method img{
+  max-width:90px;
+  margin-bottom:12px;
+}
+
+.method span{
+  display:block;
+  font-size:14px;
+  color:var(--muted);
+  font-weight:600;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <!-- VOLTAR PARA TELA PRINCIPAL -->
+    <i class="fa-solid fa-arrow-left" onclick="location.href='tela.html'"></i>
+    <h2>Escolha o método de saque</h2>
+  </div>
+
+  <div class="grid">
+
+    <!-- PAY PAY -->
+    <div class="method" onclick="location.href='saquepay.html'">
+      <img src="pay.jpg" alt="PAY PAY">
+      <span>PAY PAY</span>
+    </div>
+
+    <!-- AIRTM -->
+    <div class="method" onclick="location.href='saqueairtm.html'">
+      <img src="airtm.jpg" alt="AIRTM">
+      <span>AIRTM</span>
+    </div>
+
+    <!-- TRANSFERÊNCIA BANCÁRIA -->
+    <div class="method" onclick="location.href='saquebank.html'">
+      <img src="multicaixa.jpg" alt="Banco">
+      <span>Transferência Bancária</span>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

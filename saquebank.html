@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transferência Bancária</title>
+
+<style>
+body{
+ margin:0;
+ font-family:Segoe UI,Arial;
+ background:#0b0f1f;
+ color:#fff;
+}
+.container{
+ max-width:420px;
+ margin:auto;
+ padding:20px;
+}
+.card{
+ background:#1b1f33;
+ border-radius:12px;
+ padding:15px;
+ margin-bottom:12px;
+}
+.info{
+ display:flex;
+ justify-content:space-between;
+ margin:6px 0;
+}
+input,select,button{
+ width:100%;
+ padding:14px;
+ border-radius:10px;
+ border:none;
+ font-size:15px;
+}
+input,select{
+ background:#2a2e4a;
+ color:#fff;
+}
+button{
+ background:#3b3f5c;
+ color:#999;
+ cursor:pointer;
+}
+button.active{
+ background:#16a34a;
+ color:#fff;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h3>Transferência Bancária</h3>
+
+<div class="card">
+ <div class="info">
+  <span>Saldo disponível</span>
+  <span id="saldoTxt">0 Kz</span>
+ </div>
+</div>
+
+<div class="card">
+ <input id="nome" placeholder="Nome completo">
+</div>
+
+<div class="card">
+ <select id="banco">
+  <option value="">Selecionar banco</option>
+  <option>BFA</option>
+  <option>BIC</option>
+  <option>ATL</option>
+  <option>SOL</option>
+  <option>BAI</option>
+ </select>
+</div>
+
+<div class="card">
+ <input id="iban" placeholder="IBAN">
+</div>
+
+<div class="card">
+ <input id="valor" type="number" placeholder="Valor (mín. 1000 Kz)">
+</div>
+
+<button id="btn" onclick="retirar()">RETIRAR</button>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig={
+ apiKey:"AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+ authDomain:"mineracao-global-invest.firebaseapp.com",
+ databaseURL:"https://mineracao-global-invest-default-rtdb.firebaseio.com",
+ projectId:"mineracao-global-invest"
+};
+firebase.initializeApp(firebaseConfig);
+
+let uid="", saldo=0;
+
+firebase.auth().onAuthStateChanged(user=>{
+ if(!user){
+  location.href="index.html";
+  return;
+ }
+ uid=user.uid;
+
+ firebase.database().ref("users/"+uid).on("value", snap=>{
+  saldo = Number(snap.val().saldo || 0);
+  saldoTxt.innerText = saldo + " Kz";
+  btn.classList.toggle("active", saldo >= 1000);
+ });
+});
+
+function retirar(){
+ const agora = new Date();
+ const hora = agora.getHours();
+
+ // Horário permitido: 08h às 16h
+ if(hora < 8 || hora >= 16){
+  alert("Saques disponíveis apenas das 08h às 16h");
+  return;
+ }
+
+ const v = Number(valor.value);
+
+ if(v < 1000) return alert("Valor mínimo de retirada é 1000 Kz");
+ if(v > saldo) return alert("Saldo insuficiente");
+ if(!banco.value || !iban.value || !nome.value)
+  return alert("Preencha todos os campos");
+
+ const saldoRef = firebase.database().ref("users/"+uid+"/saldo");
+
+ saldoRef.transaction(s=>{
+  if(s === null || s < v) return;
+  return s - v;
+ }, (err, ok)=>{
+  if(ok){
+   firebase.database().ref("withdrawals").push({
+    uid: uid,
+    metodo: "Transferência Bancária",
+    banco: banco.value,
+    nome: nome.value,
+    iban: iban.value,
+    valor: v,
+    status: "pendente",
+    criadoEm: Date.now()
+   });
+
+   alert("Transferência solicitada com sucesso!");
+   nome.value = "";
+   iban.value = "";
+   valor.value = "";
+  }else{
+   alert("Erro ao processar retirada");
+  }
+ });
+}
+</script>
+</body>
+</html>

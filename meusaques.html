@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meus Saques</title>
+
+<style>
+body{
+ margin:0;
+ font-family:Segoe UI,Arial;
+ background:#0b0f1f;
+ color:#fff;
+}
+.container{
+ max-width:520px;
+ margin:auto;
+ padding:20px;
+}
+h2{
+ text-align:center;
+ margin-bottom:25px;
+}
+.card{
+ background:linear-gradient(135deg,#1f2440,#151a30);
+ border-radius:18px;
+ padding:16px;
+ margin-bottom:18px;
+ box-shadow:0 10px 30px rgba(0,0,0,.35);
+ border:1px solid rgba(255,255,255,.06);
+}
+.header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ margin-bottom:10px;
+}
+.metodo{
+ font-size:15px;
+ font-weight:700;
+ color:#7dd3fc;
+}
+.badge{
+ padding:6px 14px;
+ border-radius:999px;
+ font-size:12px;
+ font-weight:600;
+ text-transform:capitalize;
+}
+.pendente{ background:#f59e0b; color:#000; }
+.aprovado{ background:#22c55e; }
+.rejeitado{ background:#ef4444; }
+
+.valor{
+ font-size:22px;
+ font-weight:800;
+ margin:8px 0;
+}
+.subvalor{
+ font-size:12px;
+ color:#94a3b8;
+}
+.uid{
+ font-size:11px;
+ word-break:break-all;
+ color:#64748b;
+ margin-bottom:10px;
+}
+.detalhes{
+ display:flex;
+ flex-wrap:wrap;
+ gap:8px;
+ margin-top:10px;
+}
+.tag{
+ background:rgba(255,255,255,.06);
+ padding:6px 10px;
+ border-radius:10px;
+ font-size:12px;
+ color:#cbd5f5;
+}
+.data{
+ text-align:right;
+ font-size:11px;
+ color:#64748b;
+ margin-top:12px;
+}
+.empty{
+ text-align:center;
+ color:#9ca3af;
+ margin-top:50px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h2>📄 Meus Saques</h2>
+
+<div id="lista"></div>
+
+<div id="vazio" class="empty" style="display:none">
+ Nenhum pedido encontrado
+</div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig={
+ apiKey:"AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+ authDomain:"mineracao-global-invest.firebaseapp.com",
+ databaseURL:"https://mineracao-global-invest-default-rtdb.firebaseio.com",
+ projectId:"mineracao-global-invest"
+};
+firebase.initializeApp(firebaseConfig);
+
+// 🔐 Funções de mascaramento
+function maskPayPay(num){
+ if(!num) return "";
+ return num.slice(0,6) + "*".repeat(Math.max(0, num.length - 6));
+}
+
+function maskEmail(email){
+ if(!email || !email.includes("@")) return "";
+ const [user, domain] = email.split("@");
+ if(user.length < 2) return "*@" + domain;
+ return user[0] + "****" + user[user.length-1] + "@" + domain;
+}
+
+function maskIban(iban){
+ if(!iban || iban.length < 6) return "****";
+ return iban.slice(0,2) + "*".repeat(iban.length - 4) + iban.slice(-2);
+}
+
+firebase.auth().onAuthStateChanged(user=>{
+ if(!user){
+  location.href="index.html";
+  return;
+ }
+
+ const uid = user.uid;
+
+ firebase.database()
+  .ref("withdrawals")
+  .orderByChild("uid")
+  .equalTo(uid)
+  .on("value", snap => {
+
+   lista.innerHTML = "";
+
+   if(!snap.exists()){
+    vazio.style.display = "block";
+    return;
+   }
+
+   vazio.style.display = "none";
+
+   const dados = snap.val();
+
+   Object.keys(dados)
+    .sort((a,b)=>dados[b].criadoEm - dados[a].criadoEm)
+    .forEach(id=>{
+     const w = dados[id];
+
+     let valorHtml="", subValor="";
+
+     if(w.metodo==="AIRTM"){
+      valorHtml = `${Number(w.usdtSolicitado).toFixed(2)} USDT`;
+      subValor = `≈ ${Number(w.kzRecebera).toLocaleString("pt-AO")} Kz`;
+     }else{
+      valorHtml = `${Number(w.valor).toLocaleString("pt-AO")} Kz`;
+     }
+
+     lista.innerHTML += `
+      <div class="card">
+
+       <div class="header">
+        <div class="metodo">${w.metodo}</div>
+        <div class="badge ${w.status}">${w.status}</div>
+       </div>
+
+       <div class="valor">${valorHtml}</div>
+       ${subValor ? `<div class="subvalor">${subValor}</div>` : ""}
+
+       <div class="uid">UID: ${w.uid}</div>
+
+       <div class="detalhes">
+        ${w.metodo==="PayPay" ? `<div class="tag">Carteira: ${maskPayPay(w.carteira)}</div>` : ""}
+        ${w.metodo==="AIRTM" ? `<div class="tag">Email: ${maskEmail(w.email)}</div>` : ""}
+        ${w.metodo==="Transferência Bancária" ? `
+          <div class="tag">${w.banco}</div>
+          <div class="tag">IBAN: ${maskIban(w.iban)}</div>
+        ` : ""}
+       </div>
+
+       <div class="data">
+        ${new Date(w.criadoEm).toLocaleString("pt-PT")}
+       </div>
+
+      </div>
+     `;
+    });
+ });
+});
+</script>
+
+</body>
+</html>

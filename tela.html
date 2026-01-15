@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MINERAÇÃO GLOBAL INVEST</title>
+
+<style>
+:root{
+  --blue:#0b1c2d;
+  --blue2:#081726;
+  --gold:#d4af37;
+  --white:#ffffff;
+  --soft:rgba(255,255,255,.12);
+}
+
+body{
+  margin:0;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  background:linear-gradient(180deg,var(--blue),var(--blue2));
+  color:var(--white);
+  display:flex;
+  justify-content:center;
+}
+
+.app{
+  max-width:420px;
+  width:100%;
+  min-height:100vh;
+  padding-bottom:150px;
+}
+
+/* HEADER */
+header{
+  position:relative;
+  padding:26px 22px 90px;
+  background:linear-gradient(135deg,#0b1c2d 60%,#102a44);
+  border-bottom-left-radius:26px;
+  border-bottom-right-radius:26px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#f5dc84,#d4af37,#9e7c19);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  color:#000;
+}
+
+.brand strong{font-size:15px}
+.brand small{font-size:11px;opacity:.8}
+
+.user-box{
+  position:absolute;
+  left:16px;
+  right:16px;
+  bottom:-44px;
+  background:#fff;
+  color:#0b1c2d;
+  border-radius:18px;
+  padding:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 20px 45px rgba(0,0,0,.35);
+}
+
+#userSaldo{
+  font-size:20px;
+  font-weight:900;
+}
+
+/* SECTIONS */
+.section{padding:64px 20px 20px}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+
+.card{
+  background:var(--soft);
+  border-radius:16px;
+  padding:14px;
+  text-align:center;
+}
+
+.card span{
+  font-size:12px;
+  opacity:.85;
+}
+
+.card strong{
+  display:block;
+  margin-top:6px;
+  font-size:18px;
+  color:var(--gold);
+}
+
+.card small{
+  display:block;
+  margin-top:4px;
+  font-size:12px;
+  opacity:.75;
+}
+
+/* ACTIONS */
+.actions{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+}
+
+.action{
+  background:linear-gradient(135deg,#f5dc84,#d4af37,#9e7c19);
+  color:#000;
+  padding:18px;
+  border-radius:18px;
+  text-align:center;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* IMAGEM ABAIXO DOS BOTÕES */
+.logo-section{
+  margin-top:20px;
+}
+
+.logo-section img{
+  width:100%;        /* ocupa toda a largura do container */
+  height:auto;       /* mantém proporção */
+  display:block;
+  border-radius:0;   /* sem cantos arredondados */
+}
+
+/* BOTÕES DE HISTÓRICO */
+.history-buttons{
+  margin-top:20px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.history-btn{
+  width:100%;
+  padding:16px;
+  font-weight:700;
+  font-size:14px;
+  border:none;
+  border-radius:18px;
+  cursor:pointer;
+  text-align:center;
+  color:#000;
+  background:linear-gradient(135deg,#f5dc84,#d4af37,#9e7c19);
+}
+
+/* INFO */
+.info-box{
+  background:var(--soft);
+  border-radius:18px;
+  padding:18px;
+  font-size:13px;
+  line-height:1.6;
+}
+.info-box strong{color:var(--gold);}
+
+/* LEGAL TEXT */
+.legal{
+  padding:20px;
+  font-size:11px;
+  opacity:.75;
+  line-height:1.5;
+  text-align:center;
+}
+
+/* FOOTER WHATSAPP */
+.footer-wpp{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  max-width:420px;
+  width:100%;
+  background:#0b1c2d;
+  padding:12px 14px 18px;
+  box-shadow:0 -10px 30px rgba(0,0,0,.4);
+}
+
+.footer-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.footer-btn{
+  background:linear-gradient(135deg,#25D366,#1ebe5d);
+  color:#000;
+  border-radius:16px;
+  padding:14px 10px;
+  font-weight:800;
+  text-align:center;
+  font-size:13px;
+  cursor:pointer;
+}
+.footer-btn.support{
+  background:linear-gradient(135deg,#f5dc84,#d4af37,#9e7c19);
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="brand">
+    <div class="logo">MG</div>
+    <div>
+      <strong>MINERAÇÃO GLOBAL INVEST</strong><br>
+      <small>Plataforma institucional</small>
+    </div>
+  </div>
+
+  <div class="user-box">
+    <div>
+      <div id="userName">Carregando...</div>
+      <small id="userId">ID: ---</small>
+    </div>
+    <div id="userSaldo">AOA 0</div>
+  </div>
+</header>
+
+<div class="section">
+  <div class="cards">
+    <div class="card">
+      <span>Saldo disponível</span>
+      <strong id="saldoAOA">AOA 0</strong>
+      <small id="saldoUSDT">≈ 0 USDT</small>
+    </div>
+    <div class="card">
+      <span>Núcleos ativos</span>
+      <strong id="ativosResumo">0</strong>
+    </div>
+    <div class="card">
+      <span>Ganhos totais</span>
+      <strong id="ganhosAOA">AOA 0</strong>
+      <small id="ganhosUSDT">≈ 0 USDT</small>
+    </div>
+    <div class="card">
+      <span>Status</span>
+      <strong>Ativo</strong>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="actions">
+    <div class="action" onclick="go('produtos.html')">💎 Investir</div>
+    <div class="action" onclick="go('ativos.html')">⚙️ Núcleos</div>
+    <div class="action" onclick="go('deposito.html')">💰 Depositar</div>
+    <div class="action" onclick="go('saque.html')">💸 Retirar</div>
+  </div>
+
+  <!-- IMAGEM EXTENSA ABAIXO DOS BOTÕES -->
+  <div class="logo-section">
+    <img src="logo2.jpg" alt="Logo Mineração Global Invest">
+  </div>
+
+  <!-- BOTÕES DE HISTÓRICO ABAIXO DA IMAGEM -->
+  <div class="history-buttons">
+    <button class="history-btn" onclick="go( 'meudeposito.html')">HISTÓRICO DE DEPÓSITO</button>
+    <button class="history-btn" onclick="go('meusaques.html')">HISTÓRICO DE SAQUES</button>
+  </div>
+
+</div>
+
+<div class="section">
+  <div class="info-box">
+    <strong>Sobre a plataforma</strong><br><br>
+    A <strong>Mineração Global Invest</strong> é uma plataforma digital focada em investimentos
+    institucionais através de núcleos de mineração, oferecendo acompanhamento em tempo real,
+    transparência e gestão segura.
+  </div>
+</div>
+
+<div class="legal">
+  🔒 Seus dados são protegidos por criptografia e não são compartilhados com terceiros.<br>
+  ⚠️ Investimentos envolvem riscos e ganhos passados não garantem resultados futuros.
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer-wpp">
+  <div class="footer-actions">
+    <div class="footer-btn" onclick="window.open('https://chat.whatsapp.com/CTmKggiaud4Ij6wzaAGJ8A','_blank')">
+      💬 Grupo WhatsApp
+    </div>
+    <div class="footer-btn support" onclick="window.open('https://wa.me/244950548852','_blank')">
+      🛎️ Suporte
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+const TAXA_USDT = 1100;
+
+firebase.initializeApp({
+  apiKey:"AIzaSyC0qspwuzHByVxS_-hxiBSSzzLyzZCqxsM",
+  authDomain:"mineracao-global-invest.firebaseapp.com",
+  databaseURL:"https://mineracao-global-invest-default-rtdb.firebaseio.com"
+});
+
+firebase.auth().onAuthStateChanged(user=>{
+  if(!user){location.href="index.html";return;}
+  const uid=user.uid;
+
+  firebase.database().ref("users/"+uid).on("value",snap=>{
+    const d=snap.val();
+    if(!d)return;
+    const saldo=d.saldo||0;
+    userName.innerText="Bem-vindo, "+(d.name||"Usuário");
+    userId.innerText="ID: "+uid.slice(0,6);
+    userSaldo.innerText="AOA "+saldo;
+    saldoAOA.innerText="AOA "+saldo;
+    saldoUSDT.innerText="≈ "+(saldo/TAXA_USDT).toFixed(2)+" USDT";
+  });
+
+  firebase.database().ref("users/"+uid+"/investimentos").on("value",s=>{
+    let ativos=0, ganhos=0;
+    s.forEach(c=>{
+      const v=c.val();
+      if(v.status==="ativo")ativos++;
+      ganhos+=v.total||0;
+    });
+    ativosResumo.innerText=ativos;
+    ganhosAOA.innerText="AOA "+ganhos;
+    ganhosUSDT.innerText="≈ "+(ganhos/TAXA_USDT).toFixed(2)+" USDT";
+  });
+});
+
+function go(p){location.href=p}
+</script>
+
+</body>
+</html>
